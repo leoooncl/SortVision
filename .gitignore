@@ -1,0 +1,28 @@
+
+# SORTVISION – Dateien, die Git ignorieren soll
+
+# Trainings-, Validierungs- und Testbilder
+data/
+
+# Trainierte KI-Modelle und Gewichte
+models/
+*.h5
+*.keras
+*.onnx
+
+# Python-Umgebungen und Cache
+.venv/
+__pycache__/
+*.pyc
+
+# JavaScript-Abhängigkeiten
+node_modules/
+
+# macOS-Systemdateien
+.DS_Store
+
+# Zugangsdaten und geheime Schlüssel
+.env
+.env.*
+!.env.example
+*.pem

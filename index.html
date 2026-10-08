@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>SortVision AI</title>
+
+  <style>
+    body {
+      background: #101820;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    h1 { color: #50e3c2; }
+
+    .upload {
+      border: 2px dashed #50e3c2;
+      border-radius: 15px;
+      padding: 25px;
+      max-width: 500px;
+      margin: 25px auto;
+    }
+
+    #preview {
+      display: none;
+      max-width: 100%;
+      max-height: 300px;
+      margin: 20px auto;
+      border-radius: 12px;
+    }
+
+    button {
+      background: #50e3c2;
+      color: #101820;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 25px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 15px;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #results {
+      max-width: 500px;
+      margin: 20px auto;
+      text-align: left;
+      line-height: 1.8;
+    }
+
+    .result {
+      background: #23313a;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>♻️ SortVision AI</h1>
+  <p>Intelligente Bilderkennung</p>
+
+  <div class="upload">
+    <h2>Bauteil hochladen</h2>
+    <input type="file" id="imageInput"
+           accept="image/*">
+
+    <img id="preview" alt="Bildvorschau">
+
+    <button id="analyze" disabled>
+      🧠 Mit KI analysieren
+    </button>
+  </div>
+
+  <p id="status">Bitte ein Bild auswählen.</p>
+  <div id="results"></div>
+
+  <!-- KI-Bibliotheken -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
+
+  <script>
+    const input = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
+    const button = document.getElementById("analyze");
+    const status = document.getElementById("status");
+    const results = document.getElementById("results");
+
+    let model = null;
+    let imageURL = null;
+
+    input.addEventListener("change", function() {
+      const file = input.files[0];
+
+      button.disabled = true;
+      results.innerHTML = "";
+
+      if (imageURL) {
+        URL.revokeObjectURL(imageURL);
+        imageURL = null;
+      }
+
+      preview.style.display = "none";
+
+      if (!file) {
+        status.textContent = "Bitte ein Bild auswählen.";
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        status.textContent = "Ungültiger Bildtyp.";
+        return;
+      }
+
+      imageURL = URL.createObjectURL(file);
+
+      preview.onload = function() {
+        preview.style.display = "block";
+        button.disabled = false;
+        status.textContent = "Bild bereit für die KI!";
+      };
+
+      preview.onerror = function() {
+        status.textContent = "Bild konnte nicht geladen werden.";
+      };
+
+      preview.src = imageURL;
+    });
+
+    button.addEventListener("click", async function() {
+      button.disabled = true;
+      status.textContent = "🧠 KI analysiert dein Bild ...";
+      results.innerHTML = "";
+
+      try {
+        if (!model) {
+          status.textContent = "Lade KI-Modell ...";
+          model = await mobilenet.load();
+        }
+
+        const predictions = await model.classify(preview);
+
+        status.textContent = "✅ Analyse abgeschlossen!";
+
+        predictions.forEach(function(item) {
+          const div = document.createElement("div");
+          div.className = "result";
+
+          const percentage =
+            (item.probability * 100).toFixed(1);
+
+          div.textContent =
+            item.className + " — " + percentage + " %";
+
+          results.appendChild(div);
+        });
+
+      } catch (error) {
+        status.textContent =
+          "KI-Fehler. Prüfe die Internetverbindung.";
+        console.error(error);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
